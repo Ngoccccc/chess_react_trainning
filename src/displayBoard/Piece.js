@@ -14,11 +14,11 @@ export default function Piece({ piece: { type, color }, position }) {
 
     })
 
-    const pieceImg = require(`./assets/${type}_${color}.png`)
+    const pieceImg = require(`../assets/${type}_${color}.png`)
     return (
         <>
             <DragPreviewImage connect={preview} src={pieceImg} />
-            <div className='piece-container' ref={drag} style={{ opacity: isDragging ? 0 : 1 }}>
+            <div className='piece-app-container' ref={drag} style={{ opacity: isDragging ? 0 : 1 }}>
                 <img src={pieceImg} className='piece' />
             </div>
         </>

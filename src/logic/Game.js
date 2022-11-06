@@ -1,14 +1,24 @@
 import * as ChessJS from 'chess.js'
 import { BehaviorSubject } from 'rxjs'
+import { auth } from '../onlineGame/firebase'
+import { doc, getDoc } from "firebase/firestore";
 const Chess = typeof ChessJS === "function" ? ChessJS : ChessJS.Chess;
 const chess = new Chess()
-console.log(chess.board())
-export const gameSubject = new BehaviorSubject({
-    board: chess.board()
-})
 
-export const initGame = () => {
-    updateGame()
+export let gameSubject
+
+export async function initGame(gameRefFb) {
+    if (gameRefFb) {
+        const initializeGame = await getDoc(gameRefFb)
+    }
+    else {
+        gameSubject = new BehaviorSubject()
+        const savedGame = localStorage.getItem('savedGame')
+        if (savedGame) {
+            chess.load(savedGame)
+        }
+        updateGame()
+    }
 }
 
 export const resetGame = () => {
@@ -25,15 +35,16 @@ export const move = (from, to, promotion) => {
         tempMove.promotion = promotion
     }
     const legalMove = chess.move(tempMove)
-    console.log(legalMove);
+
     if (legalMove) {
         updateGame()
     }
+
 }
 
 export const handleMove = (from, to) => {
     const promotions = chess.moves({ verbose: true }).filter(m => m.promotion)
-    console.log(promotions)
+
     if (promotions.some(p => `${p.from}:${p.to}` === `${from}:${to}`)) {
         const pendingPromotion = { from, to, color: promotions[0].color }
         updateGame(pendingPromotion)
@@ -43,19 +54,22 @@ export const handleMove = (from, to) => {
         move(from, to)
     }
 
+
 }
 
 
 const updateGame = (pendingPromotion) => {
     console.log(chess)
-    const isGameIsOver = chess.isGameOver()
-    console.log(isGameIsOver)
+    const isGameOver = chess.isGameOver()
+
     const newGame = {
         board: chess.board(),
         pendingPromotion,
-        isGameIsOver,
-        result: isGameIsOver ? getGameResult() : null
+        isGameOver,
+        turn: chess.turn(),
+        result: isGameOver ? getGameResult() : null
     }
+    localStorage.setItem('savedGame', chess.fen())
     gameSubject.next(newGame)
 }
 

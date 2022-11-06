@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import Square from './Square'
 import Piece from './Piece'
 import { useDrop } from 'react-dnd'
-import { handleMove, gameSubject } from './Game'
+import { handleMove, gameSubject } from '../logic/Game'
 import Promote from './Promote'
-import { multicast } from 'rxjs'
+
 export default function BoardSquare({ piece, black, position }) {
     const [promotion, setPromotion] = useState(null)
     const [, drop] = useDrop(() => {

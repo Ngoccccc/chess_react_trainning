@@ -1,34 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react'
 import './App.css'
-import { gameSubject, initGame, resetGame } from './Game'
-import Board from './Board'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import UserForm from './onlineGame/UserForm'
+import { auth } from './onlineGame/firebase'
+import Home from './onlineGame/Home'
+import GameApp from './logic/GameApp'
+export default function App() {
 
-function App() {
-  const [board, setBoard] = useState([])
-  const [isGameOver, setIsGameOver] = useState()
-  const [result, setResult] = useState()
-  useEffect(() => {
-    initGame()
-    console.log(gameSubject)
-    const subscribe = gameSubject.subscribe(game => {
-      setIsGameOver(game.isGameOver)
-      setResult(game.result)
-      setBoard(game.board)
-    })
-    return () => subscribe.unsubscribe()
-  }, [])
+    const [user, loading, error] = useAuthState(auth)
 
-  return (
-    <div className="container">
-      {isGameOver && (<h1 className="vertical-text">Game Over
-        <button onClick={resetGame}><span className="vertical-text">New Game</span></button>
-      </h1>
-      )}
-      <div className="board-container">
-        <Board board={board} />
-      </div>
-    </div>
-  );
+
+    if (loading) {
+        return <h1>Loading</h1>
+    }
+
+    if (!user) {
+        return <UserForm />
+    }
+    return (
+        <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/game/:id" element={<GameApp />} />
+        </Routes>
+    )
+
 }
-
-export default App;
