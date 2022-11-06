@@ -11,22 +11,36 @@ function GameApp() {
   const [board, setBoard] = useState([])
   const [isGameOver, setIsGameOver] = useState()
   const [result, setResult] = useState()
-  const [turn, setTurn] = useState()
+  const [position, setPosition] = useState()
+  const [initResult, setInitResult] = useState(null)
+  const [loading, setLoading] = useState(true)
   const { id } = useParams()
-
+  console.log(id)
   useEffect(() => {
-    initGame()
+    let subscribe
+    async function init() {
+      const res = await initGame(id !== 'local' ? get(ref(db, 'games/' + id)) : null)
+      setInitResult(res)
+      console.log(res)
+      setLoading(false)
+      console.log(get(ref(db, 'games/' + id)));
+      if (!res) {
+        subscribe = gameSubject.subscribe((game) => {
+          setBoard(game.board)
+          console.log(game.board)
+          setIsGameOver(game.isGameOver)
+          setResult(game.result)
+          setPosition(game.position)
+        })
 
-    const subscribe = gameSubject.subscribe(game => {
-      setIsGameOver(game.isGameOver)
-      setResult(game.result)
-      setTurn(game.turn)
-      setBoard(game.board)
-    })
-    return () => subscribe.unsubscribe()
-  }, [])
+      }
+    }
 
+    init()
 
+    return () => subscribe && subscribe.unsubscribe()
+  }, [id])
+  console.log(board);
   return (
     <div className="app-container">
       {isGameOver && (<h1 className="vertical-text">GAME OVER
@@ -34,7 +48,8 @@ function GameApp() {
       </h1>
       )}
       <div className="board-app-container">
-        <Board board={board} turn={turn} />
+        <Board board={board} position={position} />
+
       </div>
       {result && <p className="vertical-text">{result}</p>}
     </div>

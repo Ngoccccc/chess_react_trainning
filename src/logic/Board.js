@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import BoardSquare from '../displayBoard/BoardSquare'
-export default function Board({ board, turn }) {
+export default function Board({ board, position }) {
     const [currBoard, setCurrBoard] = useState([])
     useEffect(() => {
-        setCurrBoard(turn === 'w' ? board.flat() : board.flat().reverse())
-    }, [board, turn])
+        setCurrBoard(position === 'w' ? board.flat() : board.flat().reverse())
+    }, [board, position])
     const getXYPosition = (i) => {
         const x = i % 8
         const y = Math.abs(Math.floor(i / 8) - 7)
@@ -18,7 +18,6 @@ export default function Board({ board, turn }) {
 
     const getPosition = (i) => {
         const { x, y } = getXYPosition(i)
-        const letter = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         const letter2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'][x]
         return `${letter2}${y + 1}`
     }
