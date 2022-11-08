@@ -2,14 +2,22 @@ import React, { useEffect, useState } from 'react'
 import BoardSquare from '../displayBoard/BoardSquare'
 export default function Board({ board, position }) {
     const [currBoard, setCurrBoard] = useState([])
+
     useEffect(() => {
-        setCurrBoard(position === 'w' ? board.flat() : board.flat().reverse())
+        setCurrBoard(
+            position === 'w' ? board.flat() : board.flat().reverse()
+        )
     }, [board, position])
-    const getXYPosition = (i) => {
-        const x = i % 8
-        const y = Math.abs(Math.floor(i / 8) - 7)
+
+    function getXYPosition(i) {
+        const x = position === 'w' ? i % 8 : Math.abs((i % 8) - 7)
+        const y =
+            position === 'w'
+                ? Math.abs(Math.floor(i / 8) - 7)
+                : Math.floor(i / 8)
         return { x, y }
     }
+
 
     const isBlack = (i) => {
         const { x, y } = getXYPosition(i)
@@ -24,7 +32,7 @@ export default function Board({ board, position }) {
 
     return (
         <div className='board'>
-            {board.flat().map((piece, i) => (
+            {currBoard.map((piece, i) => (
                 <div key={i} className='square'>
                     <BoardSquare
                         piece={piece}

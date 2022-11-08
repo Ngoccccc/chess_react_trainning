@@ -3,17 +3,19 @@ import { BehaviorSubject } from 'rxjs'
 import { auth, db } from '../onlineGame/firebase'
 import { map } from 'rxjs/operators'
 import { from } from 'rxjs';
-import { update, ref } from 'firebase/database';
+import { update, ref, onValue } from 'firebase/database';
 const Chess = typeof ChessJS === "function" ? ChessJS : ChessJS.Chess;
 
 let gameRef
 let member
+let newGame
 const chess = new Chess()
+const gameSubject = new BehaviorSubject()
 
-export let gameSubject
 
 export async function initGame(gameRefFb) {
     const { currentUser } = auth
+
     if (gameRefFb) {
         gameRef = gameRefFb
         const initializeGame = await gameRefFb.then((doc) => doc.val())
@@ -38,36 +40,13 @@ export async function initGame(gameRefFb) {
             return 'intruder'
         }
         chess.reset()
-
-        gameSubject = from(gameRefFb).pipe(
-            map(gameDoc => {
-                const game = gameDoc.val()
-                const { pendingPromotion, gameData, ...restOfGame } = game
-                member = game.members.find(m => m.uid === currentUser.uid)
-                const opponent = game.members.find(m => m.uid !== currentUser.uid)
-                if (gameData) {
-                    chess.load(gameData)
-                }
-                const isGameOver = chess.isGameOver()
-                return {
-                    board: chess.board(),
-                    pendingPromotion,
-                    isGameOver,
-                    position: member.piece,
-                    member,
-                    opponent,
-                    result: isGameOver ? getGameResult() : null,
-                    ...restOfGame
-                }
-            })
-
-        )
+        updateGame()
 
     }
 
     else {
         gameRef = null
-        gameSubject = new BehaviorSubject()
+
         const savedGame = localStorage.getItem('savedGame')
         if (savedGame) {
             chess.load(savedGame)
@@ -123,15 +102,40 @@ export const handleMove = (from, to) => {
 
 
 async function updateGame(pendingPromotion) {
-
+    const { currentUser } = auth
     const isGameOver = chess.isGameOver()
     console.log(gameRef.then((doc) => doc.val()).gameId)
     if (gameRef) {
         const initializeGame = await gameRef.then((doc) => doc.val())
         await update(ref(db, 'games/' + initializeGame.gameId), { gameData: chess.fen(), pendingPromotion: pendingPromotion || null })
+
+        onValue(ref(db, 'games/' + initializeGame.gameId), snapshot => {
+            const game = snapshot.val()
+            const { pendingPromotion, gameData, ...restOfGame } = game
+            member = game.members.find(m => m.uid === currentUser.uid)
+            const opponent = game.members.find(m => m.uid !== currentUser.uid)
+            if (gameData) {
+                chess.load(gameData)
+            }
+            const isGameOver = chess.isGameOver()
+            newGame = {
+                board: chess.board(),
+                pendingPromotion,
+                isGameOver,
+                position: member.piece,
+                member,
+                opponent,
+                result: isGameOver ? getGameResult() : null,
+                ...restOfGame
+            }
+            console.log(newGame);
+            gameSubject.next(newGame)
+        }
+        )
+
     }
     else {
-        const newGame = {
+        newGame = {
             board: chess.board(),
             pendingPromotion,
             isGameOver,
@@ -162,3 +166,5 @@ function getGameResult() {
         return 'UNKNOWN REASON'
     }
 }
+
+export { gameSubject }

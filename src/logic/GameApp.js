@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'
-import { set, ref, get } from 'firebase/database'
-import { doc, getDoc } from "firebase/firestore";
+import { ref, get } from 'firebase/database'
 
 import { gameSubject, initGame, resetGame } from './Game'
 import Board from './Board'
@@ -26,8 +25,9 @@ function GameApp() {
       console.log(get(ref(db, 'games/' + id)));
       if (!res) {
         subscribe = gameSubject.subscribe((game) => {
+          console.log(game)
           setBoard(game.board)
-          console.log(game.board)
+
           setIsGameOver(game.isGameOver)
           setResult(game.result)
           setPosition(game.position)
