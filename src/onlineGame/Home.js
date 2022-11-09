@@ -21,7 +21,7 @@ export default function Home() {
         const member = {
             uid: currentUser.uid,
             piece: startingPiece === 'r' ? ['b', 'w'][Math.round(Math.random())] : startingPiece,
-            name: localStorage.getItem('username'),
+            name: localStorage.getItem('userName'),
             creator: true
         }
         const game = {
@@ -33,13 +33,16 @@ export default function Home() {
         await set(ref(db, 'games/' + game.gameId), game)
         navigate(`/game/${game.gameId}`)
     }
+    function playOfflineGame() {
+        navigate(`/game/local`)
+    }
     return (
         <>
 
             <div className="home">
                 <div className="columns is-flex is-vcentered has-text-centered has-background-primary home-column is-overlay">
                     <div className="column is-half">
-                        <button className="button is-link ">
+                        <button className="button is-link " onClick={playOfflineGame}>
                             Play Locally
                         </button>
                     </div>
