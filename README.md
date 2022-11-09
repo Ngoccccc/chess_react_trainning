@@ -1,7 +1,7 @@
 <h1>Play game app
-
-    <a href="https://chess-online-2911.netlify.app/">Link game</a>
 </h1>
+<a href="https://chess-online-2911.netlify.app/">Link game</a>
+
 
 
 
